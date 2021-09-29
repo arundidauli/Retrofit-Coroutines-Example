@@ -1,27 +1,44 @@
 package com.retrofitcoroutines.example.view
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.retrofitcoroutines.example.R
+import com.google.gson.Gson
+import com.retrofitcoroutines.example.databinding.ActivityMainBinding
+import com.retrofitcoroutines.example.model.User
 import com.retrofitcoroutines.example.viewmodel.ListViewModel
-import kotlinx.android.synthetic.main.activity_main.*
+import com.retrofitcoroutines.example.viewmodel.MyViewModel
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: ListViewModel
     private val userListAdapter by lazy { UserListAdapter(arrayListOf()) }
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         viewModel = ViewModelProviders.of(this).get(ListViewModel::class.java)
         viewModel.refresh()
 
-        usersList.apply {
-            layoutManager = LinearLayoutManager(context)
+        val model: MyViewModel by viewModels()
+        model.getUsers().observe(this, Observer<List<User>> {
+            // update UI
+            Log.e(
+                MainActivity::javaClass.name,
+                "*************** viewModels Data" + Gson().toJson(it)
+            )
+
+        })
+
+        binding.usersList.apply {
+            layoutManager = LinearLayoutManager(applicationContext)
             adapter = userListAdapter
         }
 
@@ -30,20 +47,22 @@ class MainActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.users.observe(this, Observer {countries ->
             countries?.let {
-                usersList.visibility = View.VISIBLE
-                userListAdapter.updateCountries(it) }
+                binding.usersList.visibility = View.VISIBLE
+                // Log.e(MainActivity::javaClass.name,"*************** Data"+Gson().toJson(it))
+                userListAdapter.updateCountries(it)
+            }
         })
 
         viewModel.usersLoadError.observe(this, Observer { isError ->
-            listError.visibility = if(isError == "") View.GONE else View.VISIBLE
+            binding.listError.visibility = if (isError == "") View.GONE else View.VISIBLE
         })
 
         viewModel.loading.observe(this, Observer { isLoading ->
             isLoading?.let {
-                loadingView.visibility = if(it) View.VISIBLE else View.GONE
+                binding.loadingView.visibility = if (it) View.VISIBLE else View.GONE
                 if(it) {
-                    listError.visibility = View.GONE
-                    usersList.visibility = View.GONE
+                    binding.listError.visibility = View.GONE
+                    binding.usersList.visibility = View.GONE
                 }
             }
         })
