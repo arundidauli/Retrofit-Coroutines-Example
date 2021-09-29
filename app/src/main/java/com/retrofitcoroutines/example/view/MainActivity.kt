@@ -8,8 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.retrofitcoroutines.example.databinding.ActivityMainBinding
-import com.retrofitcoroutines.example.model.User
+import com.retrofitcoroutines.example.model.Profiles
 import com.retrofitcoroutines.example.viewmodel.ListViewModel
 import com.retrofitcoroutines.example.viewmodel.MyViewModel
 
@@ -18,35 +19,40 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: ListViewModel
     private lateinit var binding: ActivityMainBinding
     private lateinit var userListAdapter: UserListAdapter
+    private lateinit var profilesAdapter: ProfilesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         userListAdapter = UserListAdapter(this)
+        profilesAdapter = ProfilesAdapter(this)
         // viewModel = ViewModelProviders.of(this).get(ListViewModel::class.java)
         // viewModel.refresh()
 
 
-        binding.usersList.apply {
-            layoutManager = LinearLayoutManager(applicationContext)
-            adapter = userListAdapter
-        }
+        val parameter = JsonObject()
+        parameter.addProperty("user_id", "97897")
+        parameter.addProperty(
+            "user_looking_for",
+            "Male"
+        )
+
 
 
         binding.usersList.layoutManager = LinearLayoutManager(this)
 
 
         val model: MyViewModel by viewModels()
-        model.refresh()
+        model.refreshProfile()
 
 
-        model.getUsers().observe(this, Observer<List<User>> {
+        model.getProfiles().observe(this, Observer<List<Profiles>> {
             // update UI
             binding.usersList.visibility = View.VISIBLE
 
-            userListAdapter.updateCountries(it)
-            binding.usersList.adapter = userListAdapter
+            profilesAdapter.updateCountries(it)
+            binding.usersList.adapter = profilesAdapter
 
             Log.e(
                 MainActivity::javaClass.name,
@@ -69,6 +75,9 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        binding.fabAdd.setOnClickListener {
+            model.refreshProfile()
+        }
         // observeViewModel()
     }
 

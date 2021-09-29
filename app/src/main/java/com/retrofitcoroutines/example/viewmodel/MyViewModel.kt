@@ -3,6 +3,8 @@ package com.retrofitcoroutines.example.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.gson.JsonObject
+import com.retrofitcoroutines.example.model.Profiles
 import com.retrofitcoroutines.example.model.User
 import com.retrofitcoroutines.example.remote.UserService
 import kotlinx.coroutines.*
@@ -21,13 +23,26 @@ class MyViewModel : ViewModel() {
             loadUsers()
         }
     }
+    private val profiles: MutableLiveData<List<Profiles>> by lazy() {
+        MutableLiveData<List<Profiles>>().also {
+            loadProfiles()
+        }
+    }
 
     fun refresh() {
         loadUsers()
     }
 
+    fun refreshProfile() {
+        loadProfiles()
+    }
+
     fun getUsers(): LiveData<List<User>> {
         return users
+    }
+
+    fun getProfiles(): LiveData<List<Profiles>> {
+        return profiles
     }
 
     private fun loadUsers() {
@@ -38,6 +53,33 @@ class MyViewModel : ViewModel() {
             withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
                     users.value = response.body()?.data
+                    usersLoadError.value = null
+                    loading.value = false
+                } else {
+                    onError("Error : ${response.message()} ")
+                }
+            }
+        }
+        usersLoadError.value = ""
+        loading.value = false
+
+    }
+
+    private fun loadProfiles() {
+        // Do an asynchronous operation to fetch users.
+        val parameter = JsonObject()
+        parameter.addProperty("user_id", "97897")
+        parameter.addProperty(
+            "user_looking_for",
+            "Male"
+        )
+
+        loading.value = true
+        job = CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
+            val response = userService.getProfiles(parameter)
+            withContext(Dispatchers.Main) {
+                if (response.isSuccessful) {
+                    profiles.value = response.body()?.activeUser
                     usersLoadError.value = null
                     loading.value = false
                 } else {

@@ -7,7 +7,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class UserService {
 
-    private val BASE_URL = "https://reqres.in/api/";
+    // private val BASE_URL = "https://reqres.in/api/";
+    private val BASE_URL = "https://love2knot.com/loveknot_api/api/Apiloveknot/"
+
     fun getUsersService(): UserApi {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level =
