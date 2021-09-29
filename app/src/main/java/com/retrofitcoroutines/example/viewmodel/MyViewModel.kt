@@ -13,13 +13,17 @@ class MyViewModel : ViewModel() {
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         onError("Exception handled: ${throwable.localizedMessage}")
     }
-    private val usersLoadError = MutableLiveData<String?>()
-    private val loading = MutableLiveData<Boolean>()
+    val usersLoadError = MutableLiveData<String?>()
+    val loading = MutableLiveData<Boolean>()
 
     private val users: MutableLiveData<List<User>> by lazy {
         MutableLiveData<List<User>>().also {
             loadUsers()
         }
+    }
+
+    fun refresh() {
+        loadUsers()
     }
 
     fun getUsers(): LiveData<List<User>> {
